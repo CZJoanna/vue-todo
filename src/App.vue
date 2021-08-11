@@ -30,7 +30,7 @@
               class="toggle"
               v-model="todo.completed"
             />
-            <label :for="todo.id">{{ todo.title }}</label>
+            <label :for="todo.id">{{ todo.title }} </label>
             <button class="destroy" @click="removeTodo(todo)"></button>
           </div>
           <input type="text" class="edit" />
@@ -39,22 +39,37 @@
     </main>
     <footer class="footer" v-show="isShowFooter">
       <span class="todo-count">
-        <strong> {{ activeTodos }}</strong> items left
+        <strong> {{ activeTodos }}</strong> {{ activeTodos | pluralize }} left
       </span>
       <ul class="filters">
         <li>
-          <a href="#/all" @click="setVisibility('all')">All</a>
+          <a
+            href="#/all"
+            @click="setVisibility('all')"
+            :class="{ selected: visibility === 'all' }"
+            >All</a
+          >
         </li>
         <li>
-          <a href="#/active" @click="setVisibility('active')">Active</a>
+          <a
+            href="#/active"
+            @click="setVisibility('active')"
+            :class="{ selected: visibility === 'active' }"
+            >Active</a
+          >
         </li>
         <li>
-          <a href="#/completed" @click="setVisibility('completed')"
+          <a
+            href="#/completed"
+            @click="setVisibility('completed')"
+            :class="{ selected: visibility === 'completed' }"
             >Completed</a
           >
         </li>
       </ul>
-      <button class="clear-completed">Clear completed</button>
+      <button class="clear-completed" @click="removeCompleted">
+        Clear completed
+      </button>
     </footer>
   </section>
 </template>
@@ -62,27 +77,47 @@
 <script>
 import { v4 as uuidv4 } from "uuid";
 
+const STORAGE_KEY = "your-todo-vue";
+
 export default {
   data() {
     return {
-      newTodo: null,
-      todos: [
-        { id: uuidv4(), title: "學習 Vue Template", completed: false },
-        {
-          id: uuidv4(),
-          title: "學習在 Vue Template 中進行條件判斷",
-          completed: true,
-        },
-        { id: uuidv4(), title: "中使用迴圈", completed: true },
-      ],
+      newTodo: "",
+      todos: [],
       visibility: "all",
     };
   },
 
+  created() {
+    console.log("created");
+  },
+  mounted() {
+    console.log("mounted");
+    this.todos = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+  },
+  updated() {
+    console.log("updated");
+  },
+
+  watch: {
+    todos: {
+      handler() {
+        console.log("saveToStorage");
+        this.saveStorage();
+      },
+      deep: true,
+    },
+  },
+
   methods: {
     addTodo() {
-      const todo = { id: uuidv4(), title: this.newTodo, completed: false };
-      this.todos.push(todo);
+      // 阻擋空白輸入
+      // trim方法 去除字串前後多餘空格
+      const title = this.newTodo && this.newTodo.trim();
+      if (!title) {
+        return;
+      }
+      this.todos.push({ id: uuidv4(), title: this.newTodo, completed: false });
       this.newTodo = null;
     },
 
@@ -102,8 +137,17 @@ export default {
     },
 
     setVisibility(visibility) {
-      console.log(visibility);
+      // console.log(visibility);
       this.visibility = visibility;
+    },
+
+    removeCompleted() {
+      this.todos = this.todos.filter((todo) => !todo.completed);
+    },
+
+    saveStorage() {
+      console.log("saveStorage"); //測試完可刪
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.todos));
     },
   },
 
@@ -138,6 +182,16 @@ export default {
       }
 
       return filters;
+    },
+  },
+
+  filters: {
+    pluralize(num) {
+      if (num > 1) {
+        return "items";
+      } else {
+        return "item";
+      }
     },
   },
 };
