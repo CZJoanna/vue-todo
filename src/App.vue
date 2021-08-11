@@ -20,12 +20,17 @@
         <li
           class="todo"
           :class="{ completed: todo.completed }"
-          v-for="todo in todos"
+          v-for="todo in filteredTodos"
           :key="todo.id"
         >
           <div class="view">
-            <input type="checkbox" class="toggle" v-model="todo.completed" />
-            <label for="">{{ todo.title }}</label>
+            <input
+              :id="todo.id"
+              type="checkbox"
+              class="toggle"
+              v-model="todo.completed"
+            />
+            <label :for="todo.id">{{ todo.title }}</label>
             <button class="destroy" @click="removeTodo(todo)"></button>
           </div>
           <input type="text" class="edit" />
@@ -33,16 +38,20 @@
       </ul>
     </main>
     <footer class="footer" v-show="isShowFooter">
-      <span class="todo-count"> <strong> 3 </strong> items left </span>
+      <span class="todo-count">
+        <strong> {{ activeTodos }}</strong> items left
+      </span>
       <ul class="filters">
         <li>
-          <a href="#/all">All</a>
+          <a href="#/all" @click="setVisibility('all')">All</a>
         </li>
         <li>
-          <a href="#/active">Active</a>
+          <a href="#/active" @click="setVisibility('active')">Active</a>
         </li>
         <li>
-          <a href="#/completed">Completed</a>
+          <a href="#/completed" @click="setVisibility('completed')"
+            >Completed</a
+          >
         </li>
       </ul>
       <button class="clear-completed">Clear completed</button>
@@ -52,6 +61,7 @@
 
 <script>
 import { v4 as uuidv4 } from "uuid";
+
 export default {
   data() {
     return {
@@ -65,6 +75,7 @@ export default {
         },
         { id: uuidv4(), title: "中使用迴圈", completed: true },
       ],
+      visibility: "all",
     };
   },
 
@@ -89,6 +100,11 @@ export default {
     handleClick() {
       console.log("click");
     },
+
+    setVisibility(visibility) {
+      console.log(visibility);
+      this.visibility = visibility;
+    },
   },
 
   computed: {
@@ -98,6 +114,30 @@ export default {
       } else {
         return false;
       }
+    },
+
+    activeTodos() {
+      return this.todos.filter((todo) => todo.completed === false).length;
+    },
+
+    filteredTodos() {
+      const v = this.visibility;
+      let filters = [];
+
+      // 全部
+      if (v === "all") {
+        filters = this.todos;
+
+        // 未完成
+      } else if (v === "active") {
+        filters = this.todos.filter((todo) => !todo.completed);
+
+        // 已完成
+      } else if (v === "completed") {
+        filters = this.todos.filter((todo) => todo.completed);
+      }
+
+      return filters;
     },
   },
 };
