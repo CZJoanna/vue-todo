@@ -19,7 +19,10 @@
       <ul class="todo-list">
         <li
           class="todo"
-          :class="{ completed: todo.completed }"
+          :class="{
+            completed: todo.completed,
+            editing: todo.id === currentEditTodo.id,
+          }"
           v-for="todo in filteredTodos"
           :key="todo.id"
         >
@@ -30,10 +33,20 @@
               class="toggle"
               v-model="todo.completed"
             />
-            <label :for="todo.id">{{ todo.title }} </label>
+            <label :for="todo.id" @dblclick="editTodo(todo)"
+              >{{ todo.title }}
+            </label>
             <button class="destroy" @click="removeTodo(todo)"></button>
           </div>
-          <input type="text" class="edit" />
+          <input
+            type="text"
+            class="edit"
+            autofocus
+            v-model="currentEditTodo.title"
+            @keyup.esc="cancelEdit"
+            @keyup.enter="doneEdit"
+            @blur="doneEdit"
+          />
         </li>
       </ul>
     </main>
@@ -85,6 +98,7 @@ export default {
       newTodo: "",
       todos: [],
       visibility: "all",
+      currentEditTodo: "",
     };
   },
 
@@ -130,6 +144,27 @@ export default {
       });
       //  or 這樣寫 //增加這裡
       // this.todos = this.todos.filter(_todo => _todo.id !== todo.id)
+    },
+
+    editTodo(todo) {
+      this.currentEditTodo = { ...todo };
+    },
+
+    cancelEdit() {
+      this.currentEditTodo = {};
+    },
+
+    doneEdit() {
+      this.todos = this.todos
+        .map((todo) => {
+          if (todo.id == this.currentEditTodo.id) {
+            return { ...this.currentEditTodo };
+          } else {
+            return todo;
+          }
+        })
+        .filter((todo) => todo.title.trim());
+      this.currentEditTodo = {};
     },
 
     handleClick() {
