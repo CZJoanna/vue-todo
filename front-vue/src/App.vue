@@ -116,7 +116,7 @@ export default {
   watch: {
     todos: {
       handler() {
-        console.log("saveToStorage");
+        // console.log("saveToStorage");
         this.saveStorage();
       },
       deep: true,
@@ -172,7 +172,6 @@ export default {
     },
 
     setVisibility(visibility) {
-      // console.log(visibility);
       this.visibility = visibility;
     },
 
