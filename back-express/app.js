@@ -55,6 +55,16 @@ app.get("/", (req, res) => {
 app.post("/", (req, res) => {
   //瀏覽器送過來要進入資料庫的物件
   console.log(req.body); //{...}
-  res.send("收到了");
-  // conn.query("insert into todo",)
+  conn.query(
+    "insert into todo (title,completed) " + "values(?,?)",
+    [req.body.title, req.body.completed],
+    function (err, rows) {
+      if (err) {
+        console.log(err);
+        return;
+      } else {
+        res.send(rows);
+      }
+    }
+  );
 });
