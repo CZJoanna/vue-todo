@@ -88,7 +88,8 @@
 </template>
 
 <script>
-import { v4 as uuidv4 } from "uuid";
+// import { v4 as uuidv4 } from "uuid";
+import { apiHelper } from "./utils/helper";
 
 const STORAGE_KEY = "your-todo-vue";
 
@@ -102,21 +103,18 @@ export default {
     };
   },
 
-  created() {
-    console.log("created");
-  },
   mounted() {
-    console.log("mounted");
-    this.todos = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-  },
-  updated() {
-    console.log("updated");
+    // console.log("mounted");
+    //存在瀏覽器
+    // this.todos = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+    //資料庫來的
+    this.fetchData();
   },
 
   watch: {
     todos: {
       handler() {
-        // console.log("saveToStorage");
         this.saveStorage();
       },
       deep: true,
@@ -124,6 +122,26 @@ export default {
   },
 
   methods: {
+    fetchData() {
+      apiHelper
+        .get("/")
+        .then((res) => {
+          if (res.status === 200) {
+            // console.log(res.data);
+            this.todos = res.data.map((todo) => {
+              if (todo.completed === 0) {
+                return { ...todo, completed: false };
+              } else {
+                return { ...todo, completed: true };
+              }
+            });
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    },
+
     addTodo() {
       // 阻擋空白輸入
       // trim方法 去除字串前後多餘空格
@@ -131,8 +149,17 @@ export default {
       if (!title) {
         return;
       }
-      this.todos.push({ id: uuidv4(), title: this.newTodo, completed: false });
-      this.newTodo = null;
+      // this.todos.push({ id: uuidv4(), title: this.newTodo, completed: false });
+      apiHelper
+        .post("/", { title: this.newTodo, completed: false })
+        .then((res) => {
+          console.log(res);
+          this.newTodo = null;
+          this.fetchData();
+        })
+        .catch((err) => {
+          console.log(err);
+        });
     },
 
     removeTodo(e) {
@@ -168,7 +195,7 @@ export default {
     },
 
     handleClick() {
-      console.log("click");
+      console.log("試串API");
     },
 
     setVisibility(visibility) {
@@ -180,7 +207,6 @@ export default {
     },
 
     saveStorage() {
-      console.log("saveStorage"); //測試完可刪
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.todos));
     },
   },
