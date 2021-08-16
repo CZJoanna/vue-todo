@@ -68,3 +68,11 @@ app.post("/", (req, res) => {
     }
   );
 });
+
+//刪除一筆資料
+app.delete("/", (req, res) => {
+  console.log(req.body);
+  const selectedId = req.body.id; //number
+  conn.query(`delete from todo where id =${selectedId}`);
+  res.send("oh yeah 刪掉了");
+});

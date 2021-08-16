@@ -10,7 +10,7 @@
       autofocus
       placeholder="需要做什麼？"
       v-model="newTodo"
-      @keyup.enter="addTodo"
+      @keypress.enter="addTodo"
     />
 
     <main>
@@ -43,8 +43,8 @@
             class="edit"
             autofocus
             v-model="currentEditTodo.title"
-            @keyup.esc="cancelEdit"
-            @keyup.enter="doneEdit"
+            @keypress.esc="cancelEdit"
+            @keypress.enter="doneEdit"
             @blur="doneEdit"
           />
         </li>
@@ -163,14 +163,19 @@ export default {
     },
 
     removeTodo(e) {
-      this.todos.filter((todo) => {
-        if (todo.id === e.id) {
-          const index = this.todos.indexOf(todo);
-          this.todos.splice(index, 1);
-        }
-      });
+      // this.todos.filter((todo) => {
+      //   if (todo.id === e.id) {
+      //     const index = this.todos.indexOf(todo);
+      //     this.todos.splice(index, 1);
+      //   }
+      // });
       //  or 這樣寫 //增加這裡
       // this.todos = this.todos.filter(_todo => _todo.id !== todo.id)
+
+      apiHelper.delete("/", { data: { id: e.id } }).then((res) => {
+        console.log(res);
+        this.fetchData();
+      });
     },
 
     editTodo(todo) {
