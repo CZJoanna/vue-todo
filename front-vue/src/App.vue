@@ -15,7 +15,7 @@
 
     <main>
       <input id="toggle-all" type="checkbox" class="toggle-all" />
-      <label for="toggle-all" @click="handleClick"></label>
+      <label for="toggle-all"></label>
       <ul class="todo-list">
         <li
           class="todo"
@@ -28,14 +28,12 @@
         >
           <div class="view">
             <input
-              :id="todo.id"
               type="checkbox"
               class="toggle"
               v-model="todo.completed"
+              @click="savestatus(todo)"
             />
-            <label :for="todo.id" @dblclick="editTodo(todo)"
-              >{{ todo.title }}
-            </label>
+            <label @dblclick="editTodo(todo)">{{ todo.title }} </label>
             <button class="destroy" @click="removeTodo(todo)"></button>
           </div>
           <input
@@ -43,7 +41,7 @@
             class="edit"
             autofocus
             v-model="currentEditTodo.title"
-            @keypress.esc="cancelEdit"
+            @keyup.esc="cancelEdit"
             @keypress.enter="doneEdit"
             @blur="doneEdit"
           />
@@ -127,7 +125,6 @@ export default {
         .get("/")
         .then((res) => {
           if (res.status === 200) {
-            // console.log(res.data);
             this.todos = res.data.map((todo) => {
               if (todo.completed === 0) {
                 return { ...todo, completed: false };
@@ -141,6 +138,7 @@ export default {
           console.log(err);
         });
     },
+    editData() {},
 
     addTodo() {
       // 阻擋空白輸入
@@ -169,10 +167,10 @@ export default {
       //     this.todos.splice(index, 1);
       //   }
       // });
-      //  or 這樣寫 //增加這裡
+      //  or 這樣寫
       // this.todos = this.todos.filter(_todo => _todo.id !== todo.id)
 
-      apiHelper.delete("/", { data: { id: e.id } }).then((res) => {
+      apiHelper.delete("/:id", { data: { id: e.id } }).then((res) => {
         console.log(res);
         this.fetchData();
       });
@@ -187,16 +185,22 @@ export default {
     },
 
     doneEdit() {
-      this.todos = this.todos
-        .map((todo) => {
-          if (todo.id == this.currentEditTodo.id) {
-            return { ...this.currentEditTodo };
-          } else {
-            return todo;
-          }
-        })
-        .filter((todo) => todo.title.trim());
-      this.currentEditTodo = {};
+      // this.todos = this.todos
+      //   .map((todo) => {
+      //     if (todo.id === this.currentEditTodo.id) {
+      //       return { ...this.currentEditTodo };
+      //     } else {
+      //       return todo;
+      //     }
+      //   })
+      //   .filter((todo) => todo.title.trim());
+      //  this.currentEditTodo = {};
+
+      apiHelper.put("/", { ...this.currentEditTodo }).then((res) => {
+        console.log(res);
+        this.currentEditTodo = {};
+        this.fetchData();
+      });
     },
 
     handleClick() {
@@ -208,11 +212,24 @@ export default {
     },
 
     removeCompleted() {
-      this.todos = this.todos.filter((todo) => !todo.completed);
+      // this.todos = this.todos.filter((todo) => !todo.completed);
+      apiHelper.delete("/").then((res) => {
+        console.log(res);
+        this.fetchData();
+      });
     },
 
     saveStorage() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.todos));
+    },
+
+    savestatus(item) {
+      console.log(item.completed);
+      const toggle = item.completed === false ? true : false;
+      apiHelper.put("/", { ...item, completed: toggle }).then((res) => {
+        console.log(res);
+        this.fetchData();
+      });
     },
   },
 

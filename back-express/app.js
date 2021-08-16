@@ -70,9 +70,44 @@ app.post("/", (req, res) => {
 });
 
 //刪除一筆資料
-app.delete("/", (req, res) => {
+app.delete("/:id", (req, res) => {
   console.log(req.body);
-  const selectedId = req.body.id; //number
-  conn.query(`delete from todo where id =${selectedId}`);
-  res.send("oh yeah 刪掉了");
+  const { id } = req.body;
+  conn.query("delete from todo where id =?", [id], (err) => {
+    if (err) {
+      console.log(err);
+      return;
+    } else {
+      res.send("刪好了!");
+    }
+  });
+});
+
+app.delete("/", (req, res) => {
+  conn.query("delete from todo where completed = 1", "", (err) => {
+    if (err) {
+      console.log(err);
+      return;
+    } else {
+      res.send("把已經完成的刪好了!");
+    }
+  });
+});
+
+//修改一筆資料
+app.put("/", (req, res) => {
+  console.log(req.body);
+  const { id, title, completed } = req.body;
+  conn.query(
+    "update todo set title =?,completed = ? where id =?",
+    [title, completed, id],
+    (err, rows) => {
+      if (err) {
+        console.log(err);
+        return;
+      } else {
+        res.send(rows);
+      }
+    }
+  );
 });
